@@ -40,6 +40,12 @@ Mat GetOptimalNewCameraMatrixWithParams(Mat cameraMatrix,Mat distCoeffs,Size siz
 double CalibrateCamera(Points3fVector objectPoints, Points2fVector imagePoints, Size imageSize, Mat cameraMatrix, Mat distCoeffs, Mat rvecs, Mat tvecs, int flag) {
     return cv::calibrateCamera(*objectPoints, *imagePoints, cv::Size(imageSize.width, imageSize.height), *cameraMatrix, *distCoeffs, *rvecs, *tvecs, flag);
 }
+double StereoCalibrate(Points3fVector objectPoints, Points2fVector imagePoints1, Points2fVector imagePoints2, Mat cameraMatrix1, Mat distCoeffs1, Mat cameraMatrix2, Mat distCoeffs2, Size imageSize,
+Mat R , Mat T, Mat E, Mat F , Mat perViewErrors, int flag, TermCriteria criteria){
+    return cv::stereoCalibrate(*objectPoints, *imagePoints1, *imagePoints2, *cameraMatrix1, *distCoeffs1, *cameraMatrix2, *distCoeffs2, cv::Size(imageSize.width, imageSize.height),
+                               *R , *T, *E, *F , *perViewErrors, flag, criteria)
+}
+
 
 void Undistort(Mat src, Mat dst, Mat cameraMatrix, Mat distCoeffs, Mat newCameraMatrix) {
     cv::undistort(*src, *dst, *cameraMatrix, *distCoeffs, *newCameraMatrix);

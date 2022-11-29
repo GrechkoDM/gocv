@@ -139,6 +139,26 @@ func CalibrateCamera(objectPoints Points3fVector, imagePoints Points2fVector, im
 	res := C.CalibrateCamera(objectPoints.p, imagePoints.p, sz, cameraMatrix.p, distCoeffs.p, rvecs.p, tvecs.p, C.int(calibFlag))
 	return float64(res)
 }
+// StereoCalibrate finds the cameras intrinsic and extrinsic parameters from several views of a calibration pattern.
+//
+// For further details, please see:
+// https://docs.opencv.org/4.6.0/d9/d0c/group__calib3d.html#ga91018d80e2a93ade37539f01e6f07de5
+//
+func StereoCalibrate(objectPoints Points3fVector, imagePoints1 Points2fVector, imagePoints2 Points2fVector,
+	cameraMatrix1 *Mat, distCoeffs1 *Mat, cameraMatrix2 *Mat, distCoeffs2 *Mat, imageSize image.Point,
+	R *Mat, T *Mat, E *Mat, F *Mat, perViewErrors *Mat, calibFlag CalibFlag, criteria TermCriteria) float64 {
+	if calibFlag <= 0 {
+		calibFlag = CalibFixIntrinsic
+	}
+	sz := C.struct_Size{
+		width:  C.int(imageSize.X),
+		height: C.int(imageSize.Y),
+	}
+	res := C.StereoCalibrate(objectPoints.p, imagePoints1.p, imagePoints2.p, cameraMatrix1.p, distCoeffs1.p, cameraMatrix2.p, distCoeffs2.p, sz,
+		R.p, T.p, E.p, F.p, perViewErrors.p, C.int(calibFlag), criteria.p)
+	return float64(res)
+
+}
 
 func Undistort(src Mat, dst *Mat, cameraMatrix Mat, distCoeffs Mat, newCameraMatrix Mat) {
 	C.Undistort(src.Ptr(), dst.Ptr(), cameraMatrix.Ptr(), distCoeffs.Ptr(), newCameraMatrix.Ptr())
