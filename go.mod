@@ -1,4 +1,4 @@
-module gocv.io/x/gocv
+module github.com/GrechkoDM/gocv
 
 go 1.13
 
