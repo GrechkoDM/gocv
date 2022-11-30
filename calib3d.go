@@ -53,6 +53,8 @@ const (
 	// CalibFixPrincipalPoint indicates that the principal point is not changed during the global optimization.
 	// It stays at the center or at a different location specified when CalibUseIntrinsicGuess is set too.
 	CalibFixPrincipalPoint
+	// for stereo rectification
+	CalibZeroDisparity
 )
 
 // FisheyeUndistortImage transforms an image to compensate for fisheye lens distortion
@@ -144,8 +146,8 @@ func CalibrateCamera(objectPoints Points3fVector, imagePoints Points2fVector, im
 // For further details, please see:
 // https://docs.opencv.org/4.6.0/d9/d0c/group__calib3d.html#ga91018d80e2a93ade37539f01e6f07de5
 //
-func StereoCalibrate(objectPoints Points3fVector, imagePoints1 Points2fVector, imagePoints2 Points2fVector,
-	cameraMatrix1 *Mat, distCoeffs1 *Mat, cameraMatrix2 *Mat, distCoeffs2 *Mat, imageSize image.Point,
+func StereoCalibrate(objectPoints Points3fVector, LimagePoints Points2fVector, RimagePoints Points2fVector,
+	LCameraMatrix *Mat, LDistCoeffs *Mat, RCameraMatrix *Mat, RDistCoeffs *Mat, imageSize image.Point,
 	R *Mat, T *Mat, E *Mat, F *Mat, perViewErrors *Mat, calibFlag CalibFlag, criteria TermCriteria) float64 {
 	if calibFlag <= 0 {
 		calibFlag = CalibFixIntrinsic
@@ -154,11 +156,29 @@ func StereoCalibrate(objectPoints Points3fVector, imagePoints1 Points2fVector, i
 		width:  C.int(imageSize.X),
 		height: C.int(imageSize.Y),
 	}
-	res := C.StereoCalibrate(objectPoints.p, imagePoints1.p, imagePoints2.p, cameraMatrix1.p, distCoeffs1.p, cameraMatrix2.p, distCoeffs2.p, sz,
+	res := C.StereoCalibrate(objectPoints.p, LimagePoints.p, RimagePoints.p, LCameraMatrix.p, LDistCoeffs.p, RCameraMatrix.p, RDistCoeffs.p, sz,
 		R.p, T.p, E.p, F.p, perViewErrors.p, C.int(calibFlag), criteria.p)
 	return float64(res)
 
 }
+//  stereoRectify Computes rectification transforms for each head of a calibrated stereo camera.
+//
+// For further details, please see:
+// https://docs.opencv.org/4.6.0/d9/d0c/group__calib3d.html#ga617b1685d4059c6040827800e72ad2b6
+//
+func StereoRectify(LCameraMatrix *Mat, LDistCoeffs *Mat, RCameraMatrix *Mat, RDistCoeffs *Mat, imageSize image.Point,
+	R *Mat, T *Mat, R1 *Mat, R2 *Mat, P1 *Mat, P2 *Mat, Q *Mat, calibFlag CalibFlag, alpha float64, newImageSize image.Point, validPixROI1 *Mat, validPixROI2 *Mat) {
+	if calibFlag <= 0 {
+		calibFlag = CalibFixIntrinsic
+	}
+	sz := C.struct_Size{
+		width:  C.int(imageSize.X),
+		height: C.int(imageSize.Y),
+	}
+	C.StereoRectify(LCameraMatrix.p, LDistCoeffs.p, RCameraMatrix.p, RDistCoeffs.p, sz,
+		R.p, T.p, R1, R2, P1, P2, Q, C.int(calibFlag), sz, validPixROI1, validPixROI2)
+}
+
 
 func Undistort(src Mat, dst *Mat, cameraMatrix Mat, distCoeffs Mat, newCameraMatrix Mat) {
 	C.Undistort(src.Ptr(), dst.Ptr(), cameraMatrix.Ptr(), distCoeffs.Ptr(), newCameraMatrix.Ptr())
